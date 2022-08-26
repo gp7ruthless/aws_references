@@ -1,0 +1,17 @@
+{
+    "Resources": {
+        "MySNSTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "DisplayName": "devops_project_sns",
+                "TopicName": "devops_project_topic",
+                "Subscription": [
+                    {
+                        "Endpoint": "switchtopriyesh@gmail.com",
+                        "Protocol": "email"
+                    }
+                ]
+            }
+        }
+    }
+}

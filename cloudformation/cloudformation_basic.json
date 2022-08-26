@@ -1,0 +1,119 @@
+{
+	"Description" : "Creates EC2, Kinesis, Lambda, SNS, DynamoDB, S3 : Priyesh Rathore",
+	"Resources": {
+		"LambdaRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"RoleName": "LambdaRole",
+				"AssumeRolePolicyDocument": {
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "lambda.amazonaws.com"
+							},
+							"Action": "sts:AssumeRole"
+						}
+					]
+				}
+			}
+		},
+		"InstanceSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Enables ssh for the EC2",
+				"SecurityGroupIngress": [
+					{
+						"IpProtocol": "tcp",
+						"FromPort": 22,
+						"ToPort": 22,
+						"CidrIp": "0.0.0.0/0"
+					}
+				]
+			}
+		},
+		"MyEC2Instance": {
+			"Type": "AWS::EC2::Instance",
+			"Properties": {
+				"ImageId": "ami-0a3c14e1ddbe7f23c",
+				"InstanceType": "t2.micro",
+				"SecurityGroups" : [{ "Ref" : "InstanceSecurityGroup" }],
+				"KeyName": "devops_project"
+			}
+		},
+		"MyStream": {
+			"Type": "AWS::Kinesis::Stream",
+			"Properties": {
+				"Name": "devopsProjectKinesisStream",
+				"ShardCount": 1
+			}
+		},
+		"myDynamoDBTable": {
+			"Type": "AWS::DynamoDB::Table",
+			"Properties": {
+				"AttributeDefinitions": [
+					{
+						"AttributeName": "timestamp",
+						"AttributeType": "S"
+					},
+					{
+						"AttributeName": "deviceid",
+						"AttributeType": "S"
+					}
+				],
+				"KeySchema": [
+					{
+						"AttributeName": "deviceid",
+						"KeyType": "HASH"
+					},
+					{
+						"AttributeName": "timestamp",
+						"KeyType": "RANGE"
+					}
+				],
+				"ProvisionedThroughput": {
+					"ReadCapacityUnits": "5",
+					"WriteCapacityUnits": "5"
+				},
+				"TableName": "devopsProjectTable"
+			}
+		},
+		"MySNSTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"DisplayName": "devops_project_sns",
+				"TopicName": "devops_project_topic",
+				"Subscription": [
+					{
+						"Endpoint": "switchtopriyesh@gmail.com",
+						"Protocol": "email"
+					}
+				]
+			}
+		},
+		"S3Bucket": {
+			"Type": "AWS::S3::Bucket",
+			"DeletionPolicy": "Retain",
+			"Properties": {
+				"BucketName": "devops-project-bucket-priyesh"
+			}
+		},
+		"HelloLambdaFunction": {
+			"Type": "AWS::Lambda::Function",
+			"Properties": {
+				"FunctionName": "LambdaFunction",
+				"Role": {
+					"Fn::GetAtt": [
+						"LambdaRole",
+						"Arn"
+					]
+				},
+				"Runtime": "python3.7",
+				"Handler": "index.lambda_handler",
+				"Code": {
+					"ZipFile": "def lambda_handler(event, context):\n  message = \"Hello Lambda World!\"\n  return message\n"
+				}
+			}
+		}
+	}
+}
